@@ -3,8 +3,11 @@ import SwiftUI
 struct GameBoardView: View {
     @Bindable var gameVM: GameViewModel
     var sessionVM: SessionViewModel
+    @Environment(MusicService.self) private var music
     @State private var showResults = false
     @State private var showGameOver = false
+    @State private var showQuitConfirm = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Group {
@@ -17,11 +20,18 @@ struct GameBoardView: View {
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Tracery")
         .navigationBarTitleDisplayMode(.inline)
+        .muteButton()
+        .onAppear { music.play(.gameplay) }
         .onChange(of: gameVM.phase) { _, phase in
             switch phase {
-            case .roundOver: showResults = true
-            case .sessionOver: showGameOver = true
-            case .playing: showResults = false
+            case .roundOver:
+                music.duck()
+                showResults = true
+            case .sessionOver:
+                showGameOver = true
+            case .playing:
+                music.unduck()
+                showResults = false
             }
         }
         .navigationDestination(isPresented: $showResults) {
@@ -57,6 +67,8 @@ struct GameBoardView: View {
                 SubmittedWordRow(entry: entry)
             }
             .listStyle(.plain)
+
+            quitButton
         }
     }
 
@@ -86,6 +98,30 @@ struct GameBoardView: View {
             .frame(maxWidth: 220)
         }
         .padding()
+    }
+
+    private var quitButton: some View {
+        Button(role: .destructive) {
+            showQuitConfirm = true
+        } label: {
+            Text("Quit Game")
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+        }
+        .buttonStyle(.bordered)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+        .confirmationDialog("Quit this game?", isPresented: $showQuitConfirm, titleVisibility: .visible) {
+            Button("Quit", role: .destructive) {
+                gameVM.timer.stop()
+                music.play(.home)
+                sessionVM.endSession()
+                dismiss()
+            }
+            Button("Keep Playing", role: .cancel) {}
+        } message: {
+            Text("Your progress in this session will be lost.")
+        }
     }
 }
 

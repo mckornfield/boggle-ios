@@ -4,6 +4,8 @@ struct RoundResultsView: View {
     let gameVM: GameViewModel
     var sessionVM: SessionViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(MusicService.self) private var music
+    @State private var showQuitConfirm = false
 
     var body: some View {
         List {
@@ -23,12 +25,35 @@ struct RoundResultsView: View {
         }
         .navigationTitle("Round \(gameVM.session.currentRound) Results")
         .navigationBarBackButtonHidden(true)
+        .muteButton()
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Next Round") {
                     dismiss()
                     sessionVM.nextRound()
                 }
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button(role: .destructive) {
+                showQuitConfirm = true
+            } label: {
+                Text("Quit Game")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+            }
+            .buttonStyle(.bordered)
+            .padding()
+            .background(.background)
+            .confirmationDialog("Quit this game?", isPresented: $showQuitConfirm, titleVisibility: .visible) {
+                Button("Quit", role: .destructive) {
+                    music.play(.home)
+                    sessionVM.endSession()
+                    dismiss()
+                }
+                Button("Keep Playing", role: .cancel) {}
+            } message: {
+                Text("Your progress in this session will be lost.")
             }
         }
     }

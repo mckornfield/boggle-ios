@@ -19,6 +19,7 @@ struct LobbyView: View {
         }
         .navigationTitle(isHost ? "Hosting" : "Join Game")
         .navigationBarTitleDisplayMode(.inline)
+        .muteButton()
         .onAppear {
             let vm = LobbyViewModel(playerName: playerName, winTarget: winTarget, isHost: isHost, dictionary: dictionary)
             lobbyVM = vm

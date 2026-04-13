@@ -1,13 +1,19 @@
 import SwiftUI
 
 struct TableModeView: View {
+    let playerNames: [String]
+
     @State private var grid: Grid = Grid(letters: GridGenerator.generate())
     @State private var timer = TimerService()
     @State private var isRunning = false
     @State private var showScoreEntry = false
-    @State private var playerScores: [(name: String, score: Int)] = [
-        ("Player 1", 0), ("Player 2", 0)
-    ]
+    @State private var showScoringReference = false
+    @State private var playerScores: [(name: String, score: Int)]
+
+    init(playerNames: [String]) {
+        self.playerNames = playerNames
+        _playerScores = State(initialValue: playerNames.map { ($0, 0) })
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -33,7 +39,7 @@ struct TableModeView: View {
                         .font(.title2.bold())
                     }
 
-                    if timer.isExpired || (!isRunning) {
+                    if timer.isExpired || !isRunning {
                         Button("New Round") {
                             grid = Grid(letters: GridGenerator.generate())
                             timer.reset()
@@ -52,11 +58,69 @@ struct TableModeView: View {
         }
         .navigationTitle("Table Mode")
         .navigationBarTitleDisplayMode(.inline)
+        .muteButton()
+        .onChange(of: timer.isExpired) { _, expired in
+            if expired { showScoringReference = true }
+        }
         .sheet(isPresented: $showScoreEntry) {
             ScoreEntryView(playerScores: $playerScores)
         }
+        .sheet(isPresented: $showScoringReference) {
+            ScoringReferenceView()
+        }
     }
 }
+
+// MARK: - Scoring Reference
+
+struct ScoringReferenceView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let rows: [(length: String, points: String)] = [
+        ("3 letters", "1 pt"),
+        ("4 letters", "1 pt"),
+        ("5 letters", "2 pts"),
+        ("6 letters", "3 pts"),
+        ("7 letters", "5 pts"),
+        ("8+ letters", "11 pts"),
+    ]
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(rows, id: \.length) { row in
+                        HStack {
+                            Text(row.length)
+                            Spacer()
+                            Text(row.points)
+                                .bold()
+                                .foregroundStyle(.blue)
+                        }
+                    }
+                }
+
+                Section {
+                    Label("\"QU\" counts as 2 letters", systemImage: "info.circle")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Label("Proper nouns and abbreviations don't count", systemImage: "info.circle")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Scoring")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Score Entry
 
 struct ScoreEntryView: View {
     @Binding var playerScores: [(name: String, score: Int)]

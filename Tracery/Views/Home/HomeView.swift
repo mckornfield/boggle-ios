@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(DictionaryService.self) private var dictionary
+    @Environment(MusicService.self) private var music
     @State private var sessionVM = SessionViewModel()
     @State private var destination: Destination?
 
@@ -34,6 +35,8 @@ struct HomeView: View {
                 .padding(.horizontal, 32)
                 Spacer()
             }
+            .onAppear { music.play(.home) }
+            .muteButton()
             .navigationDestination(item: $destination) { dest in
                 switch dest {
                 case .solo:
@@ -43,7 +46,8 @@ struct HomeView: View {
                     SessionSetupView(mode: .multiplayer, sessionVM: sessionVM)
                         .environment(dictionary)
                 case .tableMode:
-                    TableModeView()
+                    SessionSetupView(mode: .tableMode, sessionVM: sessionVM)
+                        .environment(dictionary)
                 }
             }
         }

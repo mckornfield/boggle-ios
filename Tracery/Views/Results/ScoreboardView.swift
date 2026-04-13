@@ -22,5 +22,6 @@ struct ScoreboardView: View {
             }
         }
         .navigationTitle("Scoreboard")
+        .muteButton()
     }
 }

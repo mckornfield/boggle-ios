@@ -4,6 +4,7 @@ struct GameOverView: View {
     let session: GameSession
     var sessionVM: SessionViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(MusicService.self) private var music
 
     var body: some View {
         VStack(spacing: 32) {
@@ -54,5 +55,7 @@ struct GameOverView: View {
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Game Over")
         .navigationBarTitleDisplayMode(.inline)
+        .muteButton()
+        .onAppear { music.play(.home) }
     }
 }

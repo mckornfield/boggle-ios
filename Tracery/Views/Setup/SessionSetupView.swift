@@ -6,6 +6,7 @@ struct SessionSetupView: View {
     @Environment(DictionaryService.self) private var dictionary
     @State private var navigateToGame = false
     @State private var navigateToLobby = false
+    @State private var navigateToTable = false
 
     var body: some View {
         Form {
@@ -28,8 +29,10 @@ struct SessionSetupView: View {
                 }
             }
 
-            Section("Win Condition") {
-                Stepper("First to \(sessionVM.winTarget) points", value: $sessionVM.winTarget, in: 10...200, step: 5)
+            if mode != .tableMode {
+                Section("Win Condition") {
+                    Stepper("First to \(sessionVM.winTarget) points", value: $sessionVM.winTarget, in: 10...200, step: 5)
+                }
             }
 
             if mode == .multiplayer {
@@ -47,21 +50,33 @@ struct SessionSetupView: View {
         }
         .navigationTitle(modeTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .muteButton()
         .toolbar {
-            if mode == .solo {
-                ToolbarItem(placement: .confirmationAction) {
+            ToolbarItem(placement: .confirmationAction) {
+                switch mode {
+                case .solo:
                     Button("Start") {
                         sessionVM.startSoloSession(dictionary: dictionary)
                         navigateToGame = true
                     }
                     .disabled(sessionVM.playerNames[0].trimmingCharacters(in: .whitespaces).isEmpty)
+                case .tableMode:
+                    Button("Start") { navigateToTable = true }
+                        .disabled(sessionVM.playerNames[0].trimmingCharacters(in: .whitespaces).isEmpty)
+                case .multiplayer:
+                    EmptyView()
                 }
             }
         }
         .navigationDestination(isPresented: $navigateToGame) {
-            if let gameVM = sessionVM.gameVM, let activeSession = sessionVM.activeSession {
+            if let gameVM = sessionVM.gameVM {
                 GameBoardView(gameVM: gameVM, sessionVM: sessionVM)
             }
+        }
+        .navigationDestination(isPresented: $navigateToTable) {
+            TableModeView(playerNames: sessionVM.playerNames.map {
+                $0.trimmingCharacters(in: .whitespaces).isEmpty ? "Player" : $0
+            })
         }
     }
 
