@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xcodegen --version)",
+      "Bash(xcrun simctl:*)",
+      "Bash(xcode-select -p)",
+      "Bash(brew --version)",
+      "Bash(brew install:*)",
+      "Bash(xcodegen generate:*)",
+      "Bash(xcodebuild -project Tracery.xcodeproj -scheme Tracery -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.3' build)",
+      "Bash(xcodebuild -project Tracery.xcodeproj -scheme Tracery -destination 'id=A92EB0E6-595E-4E3E-B378-61812CB10CD6' build)",
+      "Bash(xcodebuild test:*)"
+    ]
+  }
+}
