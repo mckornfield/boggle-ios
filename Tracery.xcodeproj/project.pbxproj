@@ -30,6 +30,7 @@
 		71DB07EE0CC8ACBD8F90C353 /* ScoringEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40B381DA107642D5FC65DA88 /* ScoringEngine.swift */; };
 		7901B8D94755FD0A846CCF69 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AF02CDB339E8815C349699 /* GameViewModel.swift */; };
 		7DD201D9C9100A8D7931F160 /* SessionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83910760BCE8F16899FC2FF9 /* SessionSetupView.swift */; };
+		8BCF2313BEE20D868A634508 /* MultiplayerGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06065CF3A16DA26E4B3EA6DB /* MultiplayerGameTests.swift */; };
 		8E6E069C02DC2AC72BB68511 /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0ECB96C10017E6E45E237E /* Grid.swift */; };
 		932F47A817FE485C99E9D355 /* WordValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03A62D9420DC6B6EBF20744 /* WordValidator.swift */; };
 		98EFAE1FF8CFED88FA8781BD /* SessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF7E7FA3AE165F14CCEB27D /* SessionViewModel.swift */; };
@@ -61,6 +62,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		06065CF3A16DA26E4B3EA6DB /* MultiplayerGameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplayerGameTests.swift; sourceTree = "<group>"; };
 		0680E93C4E9A43C49D4856FE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		089803603E7804A735A087DD /* MusicService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicService.swift; sourceTree = "<group>"; };
 		0BCA6D0140906927F76FE091 /* RoundResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundResultsView.swift; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 			children = (
 				73AF7763212C5AF44135AB2B /* AppIconExportTests.swift */,
 				8AF049FA64E8984F896957F0 /* GridGeneratorTests.swift */,
+				06065CF3A16DA26E4B3EA6DB /* MultiplayerGameTests.swift */,
 				EA073C5B660DA9D8D8322CA8 /* ScoringEngineTests.swift */,
 				0F654B3E227DA68F1ED81008 /* WordValidatorTests.swift */,
 			);
@@ -380,6 +383,7 @@
 			files = (
 				5ED32F6FE6DEA51DDDE0882D /* AppIconExportTests.swift in Sources */,
 				6F12C7F3E413F4D61A74F066 /* GridGeneratorTests.swift in Sources */,
+				8BCF2313BEE20D868A634508 /* MultiplayerGameTests.swift in Sources */,
 				60953D70D64256ACD3B3893F /* ScoringEngineTests.swift in Sources */,
 				1032897C7EBF816DED839AF4 /* WordValidatorTests.swift in Sources */,
 			);

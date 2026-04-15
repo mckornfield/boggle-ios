@@ -36,6 +36,9 @@ struct HomeView: View {
                 Spacer()
             }
             .onAppear { music.play(.home) }
+            .onChange(of: sessionVM.isSessionActive) { old, new in
+                if old && !new { destination = nil }
+            }
             .muteButton()
             .navigationDestination(item: $destination) { dest in
                 switch dest {

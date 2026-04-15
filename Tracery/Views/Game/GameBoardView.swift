@@ -21,7 +21,13 @@ struct GameBoardView: View {
         .navigationTitle("Tracery")
         .navigationBarTitleDisplayMode(.inline)
         .muteButton()
-        .onAppear { music.play(.gameplay) }
+        .onAppear {
+            music.play(.gameplay)
+            gameVM.timer.soundEnabled = !music.isMuted
+        }
+        .onChange(of: music.isMuted) { _, muted in
+            gameVM.timer.soundEnabled = !muted
+        }
         .onChange(of: gameVM.phase) { _, phase in
             switch phase {
             case .roundOver:
@@ -32,13 +38,26 @@ struct GameBoardView: View {
             case .playing:
                 music.unduck()
                 showResults = false
+                showGameOver = false
             }
         }
         .navigationDestination(isPresented: $showResults) {
             RoundResultsView(gameVM: gameVM, sessionVM: sessionVM)
         }
         .navigationDestination(isPresented: $showGameOver) {
-            GameOverView(session: gameVM.session, sessionVM: sessionVM)
+            GameOverView(session: gameVM.session, sessionVM: sessionVM, gameVM: gameVM)
+        }
+        .alert("Disconnected", isPresented: Binding(
+            get: { gameVM.disconnectedFromGame },
+            set: { _ in }
+        )) {
+            Button("OK") {
+                gameVM.networking?.disconnect()
+                music.play(.home)
+                sessionVM.endSession()
+            }
+        } message: {
+            Text("The other player left the game.")
         }
     }
 
@@ -114,9 +133,9 @@ struct GameBoardView: View {
         .confirmationDialog("Quit this game?", isPresented: $showQuitConfirm, titleVisibility: .visible) {
             Button("Quit", role: .destructive) {
                 gameVM.timer.stop()
+                gameVM.networking?.disconnect()
                 music.play(.home)
                 sessionVM.endSession()
-                dismiss()
             }
             Button("Keep Playing", role: .cancel) {}
         } message: {

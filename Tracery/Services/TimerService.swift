@@ -6,21 +6,24 @@ import AudioToolbox
 class TimerService {
     static let roundDuration: TimeInterval = {
         #if targetEnvironment(simulator)
-        return 30
+        return 10
         #else
         return 180  // 3 minutes
         #endif
     }()
 
     private(set) var secondsRemaining: Int = Int(roundDuration)
+    private(set) var currentDuration: TimeInterval = TimerService.roundDuration
     private(set) var isRunning = false
     private(set) var isExpired = false
+    var soundEnabled: Bool = true
 
     private var cancellable: AnyCancellable?
     var onExpiry: (() -> Void)?
 
-    func start() {
-        secondsRemaining = Int(TimerService.roundDuration)
+    func start(duration: TimeInterval = TimerService.roundDuration) {
+        currentDuration = duration
+        secondsRemaining = Int(duration)
         isExpired = false
         isRunning = true
         cancellable = Timer.publish(every: 1, on: .main, in: .common)
@@ -48,7 +51,7 @@ class TimerService {
             isExpired = true
             isRunning = false
             cancellable = nil
-            AudioServicesPlaySystemSound(1005)  // audible alert
+            if soundEnabled { AudioServicesPlaySystemSound(1005) }  // audible alert
             onExpiry?()
         }
     }
@@ -61,6 +64,7 @@ class TimerService {
 
     /// Color shifts green → yellow → red as time runs out
     var urgencyFraction: Double {
-        1.0 - Double(secondsRemaining) / TimerService.roundDuration
+        guard currentDuration > 0 else { return 1.0 }
+        return 1.0 - Double(secondsRemaining) / currentDuration
     }
 }

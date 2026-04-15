@@ -24,7 +24,7 @@ struct SessionSetupView: View {
                         }
                     }
                 }
-                if mode != .solo {
+                if mode == .tableMode {
                     Button("Add Player") { sessionVM.addPlayer() }
                 }
             }
@@ -35,14 +35,23 @@ struct SessionSetupView: View {
                 }
             }
 
+            Section("Round Duration") {
+                Stepper(
+                    formattedDuration(sessionVM.roundDurationSeconds),
+                    value: $sessionVM.roundDurationSeconds,
+                    in: 30...600,
+                    step: 30
+                )
+            }
+
             if mode == .multiplayer {
                 Section("Role") {
                     NavigationLink("Host a Game") {
-                        LobbyView(isHost: true, playerName: firstName, winTarget: sessionVM.winTarget)
+                        LobbyView(isHost: true, playerName: firstName, winTarget: sessionVM.winTarget, roundDuration: sessionVM.roundDurationSeconds, sessionVM: sessionVM)
                             .environment(dictionary)
                     }
                     NavigationLink("Join a Game") {
-                        LobbyView(isHost: false, playerName: firstName, winTarget: sessionVM.winTarget)
+                        LobbyView(isHost: false, playerName: firstName, winTarget: sessionVM.winTarget, roundDuration: sessionVM.roundDurationSeconds, sessionVM: sessionVM)
                             .environment(dictionary)
                     }
                 }
@@ -77,6 +86,16 @@ struct SessionSetupView: View {
             TableModeView(playerNames: sessionVM.playerNames.map {
                 $0.trimmingCharacters(in: .whitespaces).isEmpty ? "Player" : $0
             })
+        }
+    }
+
+    private func formattedDuration(_ seconds: Int) -> String {
+        let m = seconds / 60
+        let s = seconds % 60
+        if s == 0 {
+            return "\(m) min"
+        } else {
+            return "\(m):\(String(format: "%02d", s)) min"
         }
     }
 

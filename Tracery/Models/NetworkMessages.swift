@@ -7,6 +7,7 @@ enum MessageType: String, Codable {
     case roundResults
     case playerJoined
     case startGame
+    case newGame
 }
 
 struct NetworkMessage: Codable {
@@ -50,6 +51,8 @@ struct StartGameMessage: Codable {
     let players: [PlayerJoinedMessage]
     let winTarget: Int
 }
+
+struct NewGameMessage: Codable {}
 
 // MARK: - Encode/Decode helpers
 

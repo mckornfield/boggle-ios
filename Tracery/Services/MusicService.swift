@@ -9,7 +9,7 @@ class MusicService {
     private var currentPlayer: AVAudioPlayer?
     private var fadeTimer: Timer?
 
-    private(set) var isMuted = false
+    private(set) var isMuted = true
 
     private static let fadeSteps = 20
     private static let fadeDuration: TimeInterval = 1.0
@@ -110,7 +110,7 @@ class MusicService {
             step += 1
             let fraction = Float(step) / Float(Self.fadeSteps)
             inPlayer?.volume = isMuted ? 0 : fraction
-            outPlayer?.volume = 1.0 - fraction
+            outPlayer?.volume = isMuted ? 0 : (1.0 - fraction)
             if step >= Self.fadeSteps {
                 timer.invalidate()
                 self.fadeTimer = nil

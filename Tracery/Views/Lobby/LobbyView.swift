@@ -5,6 +5,8 @@ struct LobbyView: View {
     let isHost: Bool
     let playerName: String
     let winTarget: Int
+    let roundDuration: Int
+    var sessionVM: SessionViewModel
     @Environment(DictionaryService.self) private var dictionary
     @State private var lobbyVM: LobbyViewModel?
     @State private var navigateToGame = false
@@ -21,12 +23,16 @@ struct LobbyView: View {
         .navigationBarTitleDisplayMode(.inline)
         .muteButton()
         .onAppear {
-            let vm = LobbyViewModel(playerName: playerName, winTarget: winTarget, isHost: isHost, dictionary: dictionary)
+            let vm = LobbyViewModel(playerName: playerName, winTarget: winTarget, roundDuration: roundDuration, isHost: isHost, dictionary: dictionary)
             lobbyVM = vm
             if isHost { vm.startHosting() } else { vm.startBrowsing() }
         }
         .onDisappear {
-            lobbyVM?.networking.disconnect()
+            // Only disconnect if we're leaving without starting a game (back button).
+            // If a game started, the session must stay alive for gameplay.
+            if !(lobbyVM?.isGameStarted ?? false) {
+                lobbyVM?.networking.disconnect()
+            }
         }
     }
 
@@ -68,12 +74,15 @@ struct LobbyView: View {
             Text(vm.disconnectAlert ?? "")
         })
         .navigationDestination(isPresented: $navigateToGame) {
-            if let gameVM = vm.gameVM, let session = vm.activeSession {
-                GameBoardView(gameVM: gameVM, sessionVM: SessionViewModel())
+            if let gameVM = vm.gameVM {
+                GameBoardView(gameVM: gameVM, sessionVM: sessionVM)
             }
         }
         .onChange(of: vm.isGameStarted) { _, started in
-            if started { navigateToGame = true }
+            if started {
+                sessionVM.markSessionActive(gameVM: vm.gameVM)
+                navigateToGame = true
+            }
         }
     }
 }

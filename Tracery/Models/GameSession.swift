@@ -17,13 +17,15 @@ class GameSession {
     var players: [Player]
     var winTarget: Int
     var mode: GameMode
+    var roundDuration: Int
     var currentRound: Int = 0
     var roundHistory: [RoundRecord] = []
 
-    init(players: [Player], winTarget: Int, mode: GameMode) {
+    init(players: [Player], winTarget: Int, mode: GameMode, roundDuration: Int = 180) {
         self.players = players
         self.winTarget = winTarget
         self.mode = mode
+        self.roundDuration = roundDuration
     }
 
     var winner: Player? {
@@ -37,5 +39,13 @@ class GameSession {
             players[idx].cumulativeScore += record.roundScores[pid, default: 0]
         }
         currentRound += 1
+    }
+
+    func resetForNewGame() {
+        for idx in players.indices {
+            players[idx].cumulativeScore = 0
+        }
+        currentRound = 0
+        roundHistory = []
     }
 }

@@ -3,8 +3,12 @@ import SwiftUI
 struct GameOverView: View {
     let session: GameSession
     var sessionVM: SessionViewModel
+    var gameVM: GameViewModel?
     @Environment(\.dismiss) private var dismiss
     @Environment(MusicService.self) private var music
+
+    private var isMultiplayer: Bool { gameVM?.networking != nil }
+    private var isHost: Bool { gameVM?.networking?.role == .host }
 
     var body: some View {
         VStack(spacing: 32) {
@@ -44,12 +48,29 @@ struct GameOverView: View {
 
             Spacer()
 
-            Button("New Session") {
-                sessionVM.endSession()
-                dismiss()
+            if isMultiplayer && !isHost {
+                Text("Waiting for host to start next game...")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
             }
-            .buttonStyle(.borderedProminent)
-            .font(.title3.bold())
+
+            if isHost {
+                Button("Next Game") {
+                    gameVM?.newGame()
+                }
+                .buttonStyle(.borderedProminent)
+                .font(.title3.bold())
+            }
+
+            Button(isMultiplayer ? "End Session" : "New Session") {
+                gameVM?.networking?.disconnect()
+                music.play(.home)
+                sessionVM.endSession()
+            }
+            .buttonStyle(.bordered)
+            .font(.title3)
             .padding(.bottom, 32)
         }
         .navigationBarBackButtonHidden(true)
@@ -57,5 +78,8 @@ struct GameOverView: View {
         .navigationBarTitleDisplayMode(.inline)
         .muteButton()
         .onAppear { music.play(.home) }
+        .onChange(of: gameVM?.phase) { _, phase in
+            if phase == .playing { dismiss() }
+        }
     }
 }

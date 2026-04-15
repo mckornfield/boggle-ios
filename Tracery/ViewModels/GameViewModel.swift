@@ -13,6 +13,7 @@ class GameViewModel {
     let dictionary: DictionaryService
     let session: GameSession
     let networking: NetworkingService?   // nil in solo and table mode
+    let localPlayerID: UUID              // which player in session is "us"
 
     // Round state
     private(set) var grid: Grid = Grid(letters: GridGenerator.generate())
@@ -39,10 +40,14 @@ class GameViewModel {
     private var receivedWordLists: [UUID: [String]] = [:]
     private var expectedPlayers: Int = 1
 
-    init(session: GameSession, dictionary: DictionaryService, networking: NetworkingService? = nil) {
+    // Set when the remote side disconnects mid-game so views can show an alert
+    private(set) var disconnectedFromGame: Bool = false
+
+    init(session: GameSession, dictionary: DictionaryService, networking: NetworkingService? = nil, localPlayerID: UUID? = nil) {
         self.session = session
         self.dictionary = dictionary
         self.networking = networking
+        self.localPlayerID = localPlayerID ?? session.players.first?.id ?? UUID()
         self.expectedPlayers = session.players.count
 
         timer.onExpiry = { [weak self] in self?.handleTimerExpiry() }
@@ -50,6 +55,13 @@ class GameViewModel {
     }
 
     // MARK: - Round lifecycle
+
+    func newGame() {
+        guard let net = networking, net.role == .host else { return }
+        session.resetForNewGame()
+        net.sendToAll(NewGameMessage(), type: .newGame)
+        startRound()
+    }
 
     func startRound() {
         let letters = GridGenerator.generate()
@@ -59,14 +71,14 @@ class GameViewModel {
         tracedPath = []
         tracedWord = ""
         phase = .playing
-        timer.start()
+        timer.start(duration: TimeInterval(session.roundDuration))
 
         if let net = networking, session.mode == .multiplayer {
             if net.role == .host {
                 // Broadcast grid and timer start to all peers
                 net.sendToAll(GridMessage(letters: letters), type: .gridMessage)
                 net.sendToAll(
-                    TimerStartMessage(startDate: Date(), durationSeconds: Int(TimerService.roundDuration)),
+                    TimerStartMessage(startDate: Date(), durationSeconds: session.roundDuration),
                     type: .timerStart
                 )
             }
@@ -147,17 +159,18 @@ class GameViewModel {
     // MARK: - Multiplayer round finalization
 
     private func sendWordListToPeers() {
-        guard let net = networking, let localPlayer = session.players.first else { return }
-        let msg = WordListMessage(playerID: localPlayer.id, words: submittedWords.map(\.word))
+        guard let net = networking else { return }
+        let words = submittedWords.map(\.word)
         if net.role == .host {
-            receivedWordLists[localPlayer.id] = submittedWords.map(\.word)
+            receivedWordLists[localPlayerID] = words
             finalizeMultiplayerRoundIfReady()
         } else {
-            net.sendToHost(msg, type: .wordList)
+            net.sendToHost(WordListMessage(playerID: localPlayerID, words: words), type: .wordList)
         }
     }
 
     private func finalizeMultiplayerRoundIfReady() {
+        guard phase == .playing else { return }
         guard receivedWordLists.count >= expectedPlayers else { return }
         let results = WordValidator.validateAll(playerWords: receivedWordLists, grid: grid, dictionary: dictionary)
         let scores = ScoringEngine.roundScores(from: results)
@@ -175,7 +188,7 @@ class GameViewModel {
             return PlayerResultMessage(
                 playerID: player.id,
                 playerName: player.name,
-                words: submittedWords.map(\.word),
+                words: receivedWordLists[player.id] ?? [],
                 validWords: valid,
                 duplicateWords: dupes,
                 roundScore: scores[player.id] ?? 0
@@ -189,6 +202,12 @@ class GameViewModel {
     private func setupNetworkingCallbacks() {
         guard let net = networking else { return }
 
+        net.onPeerDisconnected = { [weak self] _ in
+            guard let self else { return }
+            self.timer.stop()
+            self.disconnectedFromGame = true
+        }
+
         net.onGridReceived = { [weak self] letters in
             guard let self else { return }
             self.grid = Grid(letters: letters)
@@ -199,11 +218,9 @@ class GameViewModel {
         }
 
         net.onTimerStart = { [weak self] startDate, duration in
-            // Sync timer to host's start time
             let elapsed = Date().timeIntervalSince(startDate)
             let remaining = max(0, Double(duration) - elapsed)
-            self?.timer.start()
-            // Rough sync: adjust remaining seconds
+            self?.timer.start(duration: remaining)
         }
 
         net.onWordListReceived = { [weak self] playerID, words in
@@ -212,14 +229,40 @@ class GameViewModel {
             self.finalizeMultiplayerRoundIfReady()
         }
 
-        net.onRoundResultsReceived = { [weak self] results in
+        net.onNewGame = { [weak self] in
             guard let self, net.role == .peer else { return }
-            // Apply scores received from host
+            self.session.resetForNewGame()
+            // Grid and timer will arrive from host via onGridReceived / onTimerStart
+        }
+
+        net.onRoundResultsReceived = { [weak self] results in
+            guard let self, net.role == .peer, self.phase == .playing else { return }
+
+            // Reconstruct full round results so RoundResultsView shows complete word lists
+            var reconstructedResults: [UUID: [WordResult]] = [:]
+            var reconstructedScores: [UUID: Int] = [:]
             for result in results {
+                let validSet = Set(result.validWords)
+                let dupeSet = Set(result.duplicateWords)
+                let wordResults = result.words.map { word -> WordResult in
+                    let passedChecks = validSet.contains(word) || dupeSet.contains(word)
+                    return WordResult(
+                        word: word,
+                        isInDictionary: passedChecks,
+                        isTraceable: passedChecks,
+                        isDuplicate: dupeSet.contains(word)
+                    )
+                }
+                reconstructedResults[result.playerID] = wordResults
+                reconstructedScores[result.playerID] = result.roundScore
+
                 if let idx = self.session.players.firstIndex(where: { $0.id == result.playerID }) {
                     self.session.players[idx].cumulativeScore += result.roundScore
                 }
             }
+            self.roundResults = reconstructedResults
+            self.roundScores = reconstructedScores
+            self.session.currentRound += 1
             self.phase = self.session.winner != nil ? .sessionOver : .roundOver
         }
     }

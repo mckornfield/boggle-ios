@@ -8,6 +8,7 @@ class LobbyViewModel {
 
     var playerName: String
     var winTarget: Int
+    var roundDuration: Int
     var isHost: Bool
 
     // Lobby state
@@ -17,9 +18,10 @@ class LobbyViewModel {
     private(set) var gameVM: GameViewModel?
     var disconnectAlert: String?
 
-    init(playerName: String, winTarget: Int, isHost: Bool, dictionary: DictionaryService) {
+    init(playerName: String, winTarget: Int, roundDuration: Int, isHost: Bool, dictionary: DictionaryService) {
         self.playerName = playerName
         self.winTarget = winTarget
+        self.roundDuration = roundDuration
         self.isHost = isHost
         self.dictionary = dictionary
         self.networking = NetworkingService(playerName: playerName)
@@ -36,6 +38,7 @@ class LobbyViewModel {
 
     func startGame() {
         guard isHost else { return }
+        networking.stopHosting()   // stop advertising so no one can join mid-game
         let players = joinedPlayers
         let msg = StartGameMessage(
             players: players.map { PlayerJoinedMessage(playerID: $0.id, playerName: $0.name) },
@@ -87,9 +90,10 @@ class LobbyViewModel {
     }
 
     private func launchGame(players: [Player]) {
-        let session = GameSession(players: players, winTarget: winTarget, mode: .multiplayer)
+        let session = GameSession(players: players, winTarget: winTarget, mode: .multiplayer, roundDuration: roundDuration)
         activeSession = session
-        gameVM = GameViewModel(session: session, dictionary: dictionary, networking: networking)
+        // joinedPlayers[0] is always this device's own player (host or peer)
+        gameVM = GameViewModel(session: session, dictionary: dictionary, networking: networking, localPlayerID: joinedPlayers[0].id)
         isGameStarted = true
         gameVM?.startRound()
     }

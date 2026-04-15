@@ -27,6 +27,7 @@ class NetworkingService: NSObject {
     var onRoundResultsReceived: (([PlayerResultMessage]) -> Void)?
     var onPlayerJoined: ((UUID, String) -> Void)?
     var onStartGame: (([PlayerJoinedMessage], Int) -> Void)?
+    var onNewGame: (() -> Void)?
     var onPeerDisconnected: ((String) -> Void)?
 
     init(playerName: String) {
@@ -37,6 +38,7 @@ class NetworkingService: NSObject {
     // MARK: - Host
 
     func startHosting() {
+        stopHosting()
         role = .host
         let session = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
         session.delegate = self
@@ -98,6 +100,8 @@ class NetworkingService: NSObject {
     // MARK: - Shared
 
     func disconnect() {
+        stopHosting()
+        stopBrowsing()
         session?.disconnect()
         session = nil
         connectedPeers = []
@@ -138,6 +142,8 @@ class NetworkingService: NSObject {
             if let msg = try? message.decoded(as: StartGameMessage.self) {
                 onStartGame?(msg.players, msg.winTarget)
             }
+        case .newGame:
+            onNewGame?()
         }
     }
 }

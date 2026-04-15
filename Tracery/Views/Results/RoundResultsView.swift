@@ -26,11 +26,28 @@ struct RoundResultsView: View {
         .navigationTitle("Round \(gameVM.session.currentRound) Results")
         .navigationBarBackButtonHidden(true)
         .muteButton()
+        .onChange(of: gameVM.phase) { _, phase in
+            if phase == .playing { dismiss() }
+        }
+        .alert("Disconnected", isPresented: Binding(
+            get: { gameVM.disconnectedFromGame },
+            set: { _ in }
+        )) {
+            Button("OK") {
+                gameVM.networking?.disconnect()
+                music.play(.home)
+                sessionVM.endSession()
+            }
+        } message: {
+            Text("The other player left the game.")
+        }
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Next Round") {
-                    dismiss()
-                    sessionVM.nextRound()
+                if gameVM.networking?.role != .peer {
+                    Button("Next Round") {
+                        dismiss()
+                        sessionVM.nextRound()
+                    }
                 }
             }
         }
@@ -47,9 +64,9 @@ struct RoundResultsView: View {
             .background(.background)
             .confirmationDialog("Quit this game?", isPresented: $showQuitConfirm, titleVisibility: .visible) {
                 Button("Quit", role: .destructive) {
+                    gameVM.networking?.disconnect()
                     music.play(.home)
                     sessionVM.endSession()
-                    dismiss()
                 }
                 Button("Keep Playing", role: .cancel) {}
             } message: {
@@ -74,6 +91,7 @@ struct RoundResultsView: View {
 
 struct WordResultRow: View {
     let result: WordResult
+    @State private var showDefinition = false
 
     var body: some View {
         HStack {
@@ -99,5 +117,25 @@ struct WordResultRow: View {
                     .bold()
             }
         }
+        .contentShape(Rectangle())
+        .onLongPressGesture {
+            if UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: result.word) {
+                showDefinition = true
+            }
+        }
+        .sheet(isPresented: $showDefinition) {
+            DictionaryView(term: result.word)
+                .ignoresSafeArea()
+        }
     }
+}
+
+struct DictionaryView: UIViewControllerRepresentable {
+    let term: String
+
+    func makeUIViewController(context: Context) -> UIReferenceLibraryViewController {
+        UIReferenceLibraryViewController(term: term)
+    }
+
+    func updateUIViewController(_ uiViewController: UIReferenceLibraryViewController, context: Context) {}
 }
