@@ -3,6 +3,7 @@ import Foundation
 @Observable
 class DictionaryService {
     private(set) var isLoaded = false
+    private(set) var loadFailed = false
     private var wordSet: Set<String> = []
 
     init() {
@@ -14,7 +15,10 @@ class DictionaryService {
     private func load() async {
         guard let url = Bundle.main.url(forResource: "twl", withExtension: "txt") else {
             print("[DictionaryService] twl.txt not found in bundle")
-            await MainActor.run { isLoaded = true }
+            await MainActor.run {
+                self.loadFailed = true
+                self.isLoaded = true
+            }
             return
         }
         do {
@@ -28,7 +32,10 @@ class DictionaryService {
             }
         } catch {
             print("[DictionaryService] Failed to load dictionary: \(error)")
-            await MainActor.run { isLoaded = true }
+            await MainActor.run {
+                self.loadFailed = true
+                self.isLoaded = true
+            }
         }
     }
 

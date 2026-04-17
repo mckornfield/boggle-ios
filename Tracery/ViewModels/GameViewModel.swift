@@ -91,12 +91,19 @@ class GameViewModel {
             finalizeSoloRound()
         case .multiplayer:
             sendWordListToPeers()
-            // If we're the host, wait for peer word lists (or finalize after a short timeout)
             if networking?.role == .host {
                 finalizeMultiplayerRoundIfReady()
+                scheduleRoundFinalizeTimeout()
             }
-        case .tableMode:
-            phase = .roundOver
+        }
+    }
+
+    private func scheduleRoundFinalizeTimeout() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+            guard let self, self.phase == .playing else { return }
+            // Force-finalize with whatever word lists arrived; treat missing peers as empty
+            self.expectedPlayers = self.receivedWordLists.count
+            self.finalizeMultiplayerRoundIfReady()
         }
     }
 
@@ -204,6 +211,11 @@ class GameViewModel {
 
         net.onPeerDisconnected = { [weak self] _ in
             guard let self else { return }
+            if self.phase == .playing, net.role == .host {
+                // Peer dropped mid-round — don't wait for their word list
+                self.expectedPlayers = max(1, self.expectedPlayers - 1)
+                self.finalizeMultiplayerRoundIfReady()
+            }
             self.timer.stop()
             self.disconnectedFromGame = true
         }

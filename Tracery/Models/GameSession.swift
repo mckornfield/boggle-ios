@@ -3,7 +3,6 @@ import Foundation
 enum GameMode {
     case solo
     case multiplayer
-    case tableMode
 }
 
 struct RoundRecord {

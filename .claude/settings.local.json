@@ -12,7 +12,13 @@
       "Bash(xcodebuild test:*)",
       "Bash(xcodebuild -scheme Tracery -destination 'platform=iOS Simulator,name=iPhone 16' build)",
       "Bash(xcodebuild -scheme Tracery -destination 'platform=iOS Simulator,id=A92EB0E6-595E-4E3E-B378-61812CB10CD6' build)",
-      "Bash(chmod +x:*)"
+      "Bash(chmod +x:*)",
+      "Bash(find:*)",
+      "Bash(xcodebuild -project Tracery.xcodeproj -scheme Tracery -destination \"generic/platform=iOS\" build)",
+      "Bash(python3:*)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(ls /Users/mckornfield/repo/boggle-ios/*.yml)"
     ]
   }
 }

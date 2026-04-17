@@ -7,7 +7,7 @@ struct HomeView: View {
     @State private var destination: Destination?
 
     enum Destination: Identifiable {
-        case solo, multiplayer, tableMode
+        case solo, multiplayer
         var id: Self { self }
     }
 
@@ -28,9 +28,6 @@ struct HomeView: View {
                     modeButton("Multiplayer", systemImage: "person.3.fill", color: .green) {
                         destination = .multiplayer
                     }
-                    modeButton("Table Mode", systemImage: "ipad.landscape", color: .orange) {
-                        destination = .tableMode
-                    }
                 }
                 .padding(.horizontal, 32)
                 Spacer()
@@ -40,6 +37,11 @@ struct HomeView: View {
                 if old && !new { destination = nil }
             }
             .muteButton()
+            .alert("Dictionary Unavailable", isPresented: .constant(dictionary.loadFailed)) {
+                Button("OK") {}
+            } message: {
+                Text("The word list could not be loaded. Word validation will not work. Try reinstalling the app.")
+            }
             .navigationDestination(item: $destination) { dest in
                 switch dest {
                 case .solo:
@@ -47,9 +49,6 @@ struct HomeView: View {
                         .environment(dictionary)
                 case .multiplayer:
                     SessionSetupView(mode: .multiplayer, sessionVM: sessionVM)
-                        .environment(dictionary)
-                case .tableMode:
-                    SessionSetupView(mode: .tableMode, sessionVM: sessionVM)
                         .environment(dictionary)
                 }
             }

@@ -35,14 +35,6 @@ class SessionViewModel {
         gameVM?.startRound()
     }
 
-    func startTableModeSession() {
-        let session = GameSession(players: [], winTarget: winTarget, mode: .tableMode)
-        activeSession = session
-        isSessionActive = true
-        gameVM = GameViewModel(session: session, dictionary: DictionaryService())
-        gameVM?.startRound()
-    }
-
     func nextRound() {
         gameVM?.startRound()
     }

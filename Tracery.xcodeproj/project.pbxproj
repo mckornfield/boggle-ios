@@ -48,7 +48,6 @@
 		E496A6739489F90C6BFD1912 /* twl.txt in Resources */ = {isa = PBXBuildFile; fileRef = 357401B66B7D8EC398DA8CF4 /* twl.txt */; };
 		EBB254B3F784C2E1DFDF5B4D /* GameBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229EE6380984FB3B9AD312B6 /* GameBoardView.swift */; };
 		EBF3B66AF546EFEB76F7C769 /* MuteButtonModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FD56C60000130EB199C7FB5 /* MuteButtonModifier.swift */; };
-		F2A88E63126A604DE690BAFF /* TableModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F947E1F3972255FCF05F8D6D /* TableModeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,7 +105,6 @@
 		F3D6BF89157277F7CA0B7CB8 /* GridGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridGenerator.swift; sourceTree = "<group>"; };
 		F43C98706461EA38F9C2CE72 /* TimerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerService.swift; sourceTree = "<group>"; };
 		F59AB2CD144C5E852ECF3C66 /* NetworkMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMessages.swift; sourceTree = "<group>"; };
-		F947E1F3972255FCF05F8D6D /* TableModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableModeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -153,7 +151,6 @@
 				D7B16EE1DCD6FF5B3A824032 /* Lobby */,
 				08E7281A428E3449314130D6 /* Results */,
 				BB72DF5DD8F439932358BA8D /* Setup */,
-				DBFFC65D56A170C7C1B2B237 /* TableMode */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -268,14 +265,6 @@
 				94F3D2A63D07EE68EE6E2C97 /* GameOverView.swift */,
 			);
 			path = GameOver;
-			sourceTree = "<group>";
-		};
-		DBFFC65D56A170C7C1B2B237 /* TableMode */ = {
-			isa = PBXGroup;
-			children = (
-				F947E1F3972255FCF05F8D6D /* TableModeView.swift */,
-			);
-			path = TableMode;
 			sourceTree = "<group>";
 		};
 		EF92A20EF533A7A0DC4413D6 /* Game */ = {
@@ -415,7 +404,6 @@
 				71DB07EE0CC8ACBD8F90C353 /* ScoringEngine.swift in Sources */,
 				7DD201D9C9100A8D7931F160 /* SessionSetupView.swift in Sources */,
 				98EFAE1FF8CFED88FA8781BD /* SessionViewModel.swift in Sources */,
-				F2A88E63126A604DE690BAFF /* TableModeView.swift in Sources */,
 				2371390A89A98BE39E1A95E9 /* Tile.swift in Sources */,
 				B09E23435FC9259695B4A7F4 /* TileView.swift in Sources */,
 				3ABBBC1242B6E65089CD0195 /* TimerService.swift in Sources */,
